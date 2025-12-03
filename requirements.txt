@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+seaborn
+python-pptx
+reportlab
+openpyxl
+pillow
+scikit-learn

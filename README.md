@@ -176,3 +176,47 @@ Output/report.pdf
 Saved in:
 Output/
 
+### Example Insights:
+Clicks: ↑ Strong upward trend (+12.45%)
+Impressions: ↓ Mild downward trend (-3.22%)
+Engagement Score: ↓ Strong downward trend (-15.21%)
+ROI: ↑ Strong upward trend (+8.55%)
+
+TOP TAKEAWAYS:
+• Clicks are rising significantly — strong audience engagement.
+• Impressions are falling — consider expanding audience targeting.
+• ROI is improving — marketing efficiency increasing.
+
+---
+
+## Tech Stack
+
+- Python  
+- Pandas  
+- Matplotlib  
+- ReportLab  
+- OpenAI GPT-4o-mini  
+- CLI Argument Parser  
+
+---
+
+## Future Improvements
+
+- Spike and anomaly detection  
+- Interactive dashboard UI  
+- SQL/Database ingestion  
+- Automated email delivery  
+
+---
+
+## Conclusion
+
+TrendSpotter fulfills all requirements of **H-001: The Automated Insight Engine** by providing:
+- End-to-end automated analytics
+- Flexible dataset input
+- KPI + trend insights
+- AI-generated summaries
+- Fully formatted reports
+
+This tool is ready for real-world marketing intelligence use.
+

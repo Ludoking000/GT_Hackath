@@ -24,64 +24,80 @@ def generate_basic_analysis(df):
 
 
 
-def generate_charts(df, output_dir="Output"):
-    """Generate trend charts + bar charts and save them as PNG."""
 
-    os.makedirs(output_dir, exist_ok=True)
-
+def generate_charts(df):
     chart_paths = []
+    os.makedirs("Output", exist_ok=True)
 
-    # -------- 1. Spend over time --------
-    for col in df.columns:
-        if "date" in col.lower():
-            date_col = col
-            break
+    # Ensure Date is datetime if present
+    if "Date" in df.columns:
+        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
+        df["Month"] = df["Date"].dt.to_period("M").astype(str)
     else:
-        date_col = None
+        # fallback: create artificial month groups every 30 rows
+        df["Month"] = (df.index // 30).astype(str)
 
-    if date_col:
-        df_sorted = df.sort_values(date_col)
+    # ---------------------------------------
+    # 1. Clicks per Month
+    # ---------------------------------------
+    if "Clicks" in df.columns:
+        monthly_clicks = df.groupby("Month")["Clicks"].mean()
 
-        if "spend" in df.columns:
-            plt.figure(figsize=(8, 4))
-            plt.plot(df_sorted[date_col], df_sorted["spend"], marker="o")
-            plt.title("Spend Over Time")
-            plt.xlabel("Date")
-            plt.ylabel("Spend")
-            path = os.path.join(output_dir, "spend_over_time.png")
-            plt.savefig(path)
-            plt.close()
-            chart_paths.append(path)
+        plt.figure(figsize=(10,5))
+        monthly_clicks.plot(marker="o", linewidth=3, color="#007acc")
+        plt.title("Average Clicks per Month", fontsize=14)
+        plt.xlabel("Month")
+        plt.ylabel("Clicks")
+        path = "Output/clicks_monthly.png"
+        plt.savefig(path, bbox_inches="tight")
+        plt.close()
+        chart_paths.append(path)
 
-        if "impressions" in df.columns:
-            plt.figure(figsize=(8, 4))
-            plt.plot(df_sorted[date_col], df_sorted["impressions"], marker="o", color="green")
-            plt.title("Impressions Over Time")
-            plt.xlabel("Date")
-            plt.ylabel("Impressions")
-            path = os.path.join(output_dir, "impressions_over_time.png")
-            plt.savefig(path)
-            plt.close()
-            chart_paths.append(path)
+    # ---------------------------------------
+    # 2. Impressions per Month
+    # ---------------------------------------
+    if "Impressions" in df.columns:
+        monthly_impressions = df.groupby("Month")["Impressions"].mean()
 
-    # -------- 2. Bar chart: Top campaigns --------
-    for possible_col in ["campaign", "campaign_name", "ad_name", "adgroup"]:
-        if possible_col in df.columns:
-            campaign_col = possible_col
-            break
-    else:
-        campaign_col = None
+        plt.figure(figsize=(10,5))
+        monthly_impressions.plot(marker="o", linewidth=3, color="#00a65a")
+        plt.title("Average Impressions per Month", fontsize=14)
+        plt.xlabel("Month")
+        plt.ylabel("Impressions")
+        path = "Output/impressions_monthly.png"
+        plt.savefig(path, bbox_inches="tight")
+        plt.close()
+        chart_paths.append(path)
 
-    if campaign_col and "spend" in df.columns:
-        top_campaigns = df.groupby(campaign_col)["spend"].sum().nlargest(10)
+    # ---------------------------------------
+    # 3. Engagement by Customer Segment
+    # ---------------------------------------
+    if "Engagement_Score" in df.columns and "Customer_Segment" in df.columns:
+        seg_engagement = df.groupby("Customer_Segment")["Engagement_Score"].mean()
 
-        plt.figure(figsize=(8, 4))
-        top_campaigns.plot(kind="bar")
-        plt.title("Top Campaign Spend")
-        plt.xlabel("Campaign")
-        plt.ylabel("Total Spend")
-        path = os.path.join(output_dir, "top_campaigns.png")
-        plt.savefig(path)
+        plt.figure(figsize=(10,5))
+        seg_engagement.plot(kind="bar", color="#ff9900")
+        plt.title("Engagement Score by Customer Segment", fontsize=14)
+        plt.ylabel("Engagement Score")
+        plt.xticks(rotation=45, ha="right")
+        path = "Output/engagement_by_segment.png"
+        plt.savefig(path, bbox_inches="tight")
+        plt.close()
+        chart_paths.append(path)
+
+    # ---------------------------------------
+    # 4. ROI by Company
+    # ---------------------------------------
+    if "ROI" in df.columns and "Company" in df.columns:
+        company_roi = df.groupby("Company")["ROI"].mean()
+
+        plt.figure(figsize=(10,5))
+        company_roi.plot(kind="bar", color="#9933ff")
+        plt.title("Average ROI by Company", fontsize=14)
+        plt.ylabel("ROI")
+        plt.xticks(rotation=45, ha="right")
+        path = "Output/roi_by_company.png"
+        plt.savefig(path, bbox_inches="tight")
         plt.close()
         chart_paths.append(path)
 

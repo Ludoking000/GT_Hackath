@@ -1,54 +1,71 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 from textwrap import wrap
 import os
 
 PAGE_WIDTH, PAGE_HEIGHT = letter
-LEFT_MARGIN = 40
-TOP_MARGIN = 750
-LINE_HEIGHT = 16
-MAX_WIDTH = 520   # safe printable width
+LEFT = 50
+RIGHT = 550
+TOP = 750
+LINE = 16
+WRAP_WIDTH = 95  # affects wrapping quality
 
-def draw_wrapped_text(c, text, x, y, max_width=MAX_WIDTH):
-    """
-    Automatically wraps long text so it doesn't overflow the PDF page.
-    Returns the final y-position after writing the wrapped lines.
-    """
+def draw_header(c, title):
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(LEFT, TOP, title)
+    c.setStrokeColor(colors.black)
+    c.setLineWidth(1)
+    c.line(LEFT, TOP - 5, RIGHT, TOP - 5)
+
+def draw_section_title(c, title, y):
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(LEFT, y, title)
+    return y - 25
+
+def draw_wrapped(c, text, y):
+    c.setFont("Helvetica", 11)
     lines = text.split("\n")
-
     for line in lines:
-        wrapped_lines = wrap(line, width=100)  # Adjust width for wrapping
-        for wrapped in wrapped_lines:
-            c.drawString(x, y, wrapped)
-            y -= LINE_HEIGHT
+        wrapped = wrap(line, WRAP_WIDTH)
+        for w in wrapped:
+            c.drawString(LEFT, y, w)
+            y -= LINE
+    return y - 10
 
-    return y
-
+def clean_text(text):
+    replace = {
+        "**": "",
+        "*": "",
+        "###": "",
+        "#": ""
+    }
+    for k, v in replace.items():
+        text = text.replace(k, v)
+    return text.strip()
 
 def create_pdf_report(output_path, insights_text, chart_paths):
     c = canvas.Canvas(output_path, pagesize=letter)
 
-    # -------------------------------
-    # PAGE 1 — INSIGHTS + EXEC SUMMARY
-    # -------------------------------
-    y = TOP_MARGIN
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(LEFT_MARGIN, y, "Automated Insight Report")
-    y -= 30
+    # CLEAN text
+    insights_text = clean_text(insights_text)
 
-    c.setFont("Helvetica", 12)
+    # ---------------- PAGE 1 ------------------
+    draw_header(c, "Automated Insight Report")
+    y = TOP - 50
 
-    # Add insights with wrapped text
-    y = draw_wrapped_text(c, insights_text, LEFT_MARGIN, y)
+    # SECTION 1: Key Metrics + Trends + Takeaways
+    y = draw_section_title(c, "Summary Insights", y)
+    y = draw_wrapped(c, insights_text, y)
 
     c.showPage()
 
-    # -------------------------------
-    # PAGE 2+ — CHARTS
-    # -------------------------------
+    # ---------------- PAGE 2+ (Charts) ------------------
     for path in chart_paths:
         if os.path.exists(path):
-            c.drawImage(path, 40, 200, width=520, height=350)
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(LEFT, TOP, "Visual Charts")
+            c.drawImage(path, 50, 250, width=500, height=400)
             c.showPage()
 
     c.save()
